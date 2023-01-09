@@ -1,32 +1,29 @@
-import { JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { JSX, Ref } from 'preact';
+import { useEffect, useRef } from 'preact/hooks';
 
-export default function Video() {
-  const video = useRef<HTMLVideoElement>(null);
+interface Props {
+  stream: MediaStream | null;
+}
+
+const Video = (props: Props) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
-    if (!navigator.mediaDevices.getUserMedia) return;
-
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then(function (stream) {
-        if (video.current) {
-          video.current.srcObject = stream;
-        }
-      })
-      .catch(function (err0r) {
-        console.log("Something went wrong!");
-      });
-  }, [video.current]);
+    if (videoRef.current) {
+      videoRef.current.srcObject = props.stream;
+    }
+  }, [videoRef.current, props.stream]);
 
   return (
     <div>
       <video
+        ref={videoRef}
         class="rounded-lg"
-        ref={video}
         autoPlay
         width="100%"
-        height="100%"
+        // height="100%"
       />
     </div>
   );
-}
+};
+
+export default Video;
