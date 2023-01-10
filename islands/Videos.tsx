@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'preact/hooks';
-import server from '@/signaling/server.ts';
 import { ICE_SERVERS } from '@/utils/constants.ts';
 import Video from '@/islands/Video.tsx';
-import { IceCandidateMessage, SessionDescMessage } from '../signaling/types.ts';
+import {
+  IceCandidateMessage,
+  JoinRoomMessage,
+  SessionDescMessage,
+} from '../signaling/types.ts';
 
 interface Props {
   room: string;
-  length: number;
 }
 
 const peers: Record<string, RTCPeerConnection> = {};
@@ -40,12 +42,15 @@ export default function Videos(props: Props) {
       Math.random().toString(36).substring(2, 8);
     localStorage.setItem('clientId', existedClientId);
     setClientId(existedClientId);
+    const ws = new WebSocket(
+      `ws://localhost:8000/api/ws?clientId=${clientId}&room=${props.room}`
+    );
 
-    const sub = server.subscribe(props.room, (message) => {
-      console.log('onjoinroom', message);
-      const clientId = message.data.clientId;
-
-      if (message.type === 'add-peer') {
+    ws.onmessage = (ev) => {
+      const evtData = JSON.parse(ev.data);
+      console.log(evtData);
+      if (evtData.type === 'add-peer') {
+        const data = evtData.data as JoinRoomMessage;
         const peerConnection = new RTCPeerConnection({
           iceServers: ICE_SERVERS,
         });
@@ -54,17 +59,19 @@ export default function Videos(props: Props) {
         peerConnection.onicecandidate = function (event) {
           console.log('onicecandidate');
           if (event.candidate) {
-            server.send({
-              type: 'relay-ice-candidate',
-              data: {
-                room: props.room,
-                clientId: existedClientId,
-                iceCandidate: {
-                  sdpMLineIndex: event.candidate.sdpMLineIndex,
-                  candidate: event.candidate.candidate,
+            ws.send(
+              JSON.stringify({
+                type: 'relay-ice-candidate',
+                data: {
+                  room: props.room,
+                  clientId: existedClientId,
+                  iceCandidate: {
+                    sdpMLineIndex: event.candidate.sdpMLineIndex,
+                    candidate: event.candidate.candidate,
+                  },
                 },
-              },
-            });
+              })
+            );
           }
         };
 
@@ -96,10 +103,7 @@ export default function Videos(props: Props) {
         //   peerConnection.addTrack(track, localStream);
         // });
 
-        if (
-          message.data.createOffer &&
-          existedClientId === message.data.clientId
-        ) {
+        if (data.createOffer && existedClientId === data.clientId) {
           peerConnection.onnegotiationneeded = () => {
             peerConnection
               .createOffer()
@@ -107,14 +111,16 @@ export default function Videos(props: Props) {
                 peerConnection
                   .setLocalDescription(localDescription)
                   .then(() => {
-                    server.send({
-                      type: 'relay-session-desc',
-                      data: {
-                        room: props.room,
-                        clientId: existedClientId,
-                        sessionDescription: localDescription,
-                      },
-                    });
+                    ws.send(
+                      JSON.stringify({
+                        type: 'relay-session-desc',
+                        data: {
+                          room: props.room,
+                          clientId: existedClientId,
+                          sessionDescription: localDescription,
+                        },
+                      })
+                    );
                   })
                   .catch(() => {
                     alert('Offer setLocalDescription failed!');
@@ -125,8 +131,8 @@ export default function Videos(props: Props) {
               });
           };
         }
-      } else if (message.type === 'session-desc') {
-        const data = message.data as SessionDescMessage;
+      } else if (evtData.type === 'session-desc') {
+        const data = evtData.data as SessionDescMessage;
         const clientId = data.clientId;
         const peer = peers[clientId];
         const remoteDescription = data.sessionDescription;
@@ -141,14 +147,16 @@ export default function Videos(props: Props) {
                   peer.setLocalDescription(
                     localDescription,
                     () => {
-                      server.send({
-                        type: 'relay-session-desc',
-                        data: {
-                          room: props.room,
-                          clientId: existedClientId,
-                          sessionDescription: localDescription,
-                        },
-                      });
+                      ws.send(
+                        JSON.stringify({
+                          type: 'relay-session-desc',
+                          data: {
+                            room: props.room,
+                            clientId: existedClientId,
+                            sessionDescription: localDescription,
+                          },
+                        })
+                      );
                     },
                     () => alert('Answer setLocalDescription failed!')
                   );
@@ -159,9 +167,9 @@ export default function Videos(props: Props) {
           },
           (error) => console.log('setRemoteDescription error: ', error)
         );
-      } else if (message.type === 'ice-candidate') {
-        const data = message.data as IceCandidateMessage;
-        const peer = peers[message.data.clientId];
+      } else if (evtData.type === 'ice-candidate') {
+        const data = evtData.data as IceCandidateMessage;
+        const peer = peers[data.clientId];
         const iceCandidate = data.iceCandidate;
         peer
           .addIceCandidate(new RTCIceCandidate(iceCandidate))
@@ -169,14 +177,18 @@ export default function Videos(props: Props) {
             console.log('Error addIceCandidate', error, iceCandidate);
           });
       }
-    });
+    };
 
-    server.send({
-      type: 'join',
-      data: { room: props.room, clientId: existedClientId },
-    });
+    ws.onopen = () => {
+      ws.send(
+        JSON.stringify({
+          type: 'join',
+          data: { room: props.room, clientId: existedClientId },
+        })
+      );
+    };
 
-    return () => sub.unsubscribe();
+    return () => ws.close();
   }, [localStream]);
 
   return (

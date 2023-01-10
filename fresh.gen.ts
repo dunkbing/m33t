@@ -8,7 +8,8 @@ import * as $1 from "./routes/api/connect.ts";
 import * as $2 from "./routes/api/ice-candidate.ts";
 import * as $3 from "./routes/api/joke.ts";
 import * as $4 from "./routes/api/send.ts";
-import * as $5 from "./routes/index.tsx";
+import * as $5 from "./routes/api/ws.ts";
+import * as $6 from "./routes/index.tsx";
 import * as $$0 from "./islands/Counter.tsx";
 import * as $$1 from "./islands/Options.tsx";
 import * as $$2 from "./islands/Video.tsx";
@@ -21,7 +22,8 @@ const manifest = {
     "./routes/api/ice-candidate.ts": $2,
     "./routes/api/joke.ts": $3,
     "./routes/api/send.ts": $4,
-    "./routes/index.tsx": $5,
+    "./routes/api/ws.ts": $5,
+    "./routes/index.tsx": $6,
   },
   islands: {
     "./islands/Counter.tsx": $$0,
