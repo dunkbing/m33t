@@ -18,9 +18,9 @@ const Video = (props: Props) => {
       <video
         ref={videoRef}
         class="rounded-lg"
-        autoPlay
         width="100%"
-        // height="100%"
+        autoPlay
+        playsInline
       />
     </div>
   );

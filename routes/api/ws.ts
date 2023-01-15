@@ -1,9 +1,3 @@
-import {
-  IceCandidateMessage,
-  JoinRoomMessage,
-  SessionDescMessage,
-} from '@/signaling/types.ts';
-
 const clients: Record<string, Map<string, WebSocket>> = {};
 
 function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
@@ -13,60 +7,56 @@ function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
 
   ws.onmessage = (e) => {
     const evtData = JSON.parse(e.data);
-    if (evtData.type === 'join') {
-      const data = evtData.data as JoinRoomMessage;
-      if (!Object.keys(clients).includes(room)) {
-        clients[room] = new Map();
-      }
-      if (data.clientId in clients[data.room].keys()) return;
-
-      for (const id in clients[room]) {
-        clients[room].get(id)?.send(
+    const data = evtData.data;
+    if (!clients[room]) {
+      clients[room] = new Map();
+    }
+    clients[room].set(clientId, ws);
+    if (evtData.type === 'call-offer') {
+      for (const [k, v] of clients[room]) {
+        if (k === clientId) continue;
+        if (v.readyState !== v.OPEN) continue;
+        v.send(
           JSON.stringify({
-            type: 'add-peer',
-            data: {
-              room: data.room,
-              clientId,
-              createOffer: false,
-            },
-          })
-        );
-        ws.send(
-          JSON.stringify({
-            type: 'add-peer',
-            data: {
-              room: data.room,
-              clientId: id,
-              createOffer: true,
-            },
-          })
-        );
-      }
-      clients[room].set(clientId, ws);
-    } else if (evtData.type === 'relay-ice-candidate') {
-      const data = evtData.data as IceCandidateMessage;
-      const clientId = data.clientId;
-      const iceCandidate = data.iceCandidate;
-
-      if (clientId in clients[room].keys()) {
-        clients[room].get(clientId)?.send(
-          JSON.stringify({
-            type: 'ice-candidate',
-            data: iceCandidate,
+            type: 'call-offer',
+            data,
             clientId,
           })
         );
       }
-    } else if (evtData.type === 'relay-session-desc') {
-      const data = evtData.data as SessionDescMessage;
-      const clientId = data.clientId;
-      const sessionDescription = data.sessionDescription;
-
-      if (clientId in clients[room].keys()) {
-        clients[room].get(clientId)?.send(
+    } else if (evtData.type === 'call-answer') {
+      for (const [k, v] of clients[room]) {
+        if (k === clientId) continue;
+        if (v.readyState !== v.OPEN) continue;
+        v.send(
           JSON.stringify({
-            type: 'session-desc',
-            data: { clientId, sessionDescription },
+            type: 'call-answer',
+            data,
+            clientId,
+          })
+        );
+      }
+    } else if (evtData.type === 'answer') {
+      for (const [k, v] of clients[room]) {
+        if (k === clientId) continue;
+        if (v.readyState !== v.OPEN) continue;
+        v.send(
+          JSON.stringify({
+            type: 'answer',
+            data,
+            clientId,
+          })
+        );
+      }
+    } else if (evtData.type === 'offer') {
+      for (const [k, v] of clients[room]) {
+        if (k === clientId) continue;
+        if (v.readyState !== v.OPEN) continue;
+        v.send(
+          JSON.stringify({
+            type: 'offer',
+            data,
+            clientId,
           })
         );
       }
