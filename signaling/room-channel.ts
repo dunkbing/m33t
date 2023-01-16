@@ -3,7 +3,7 @@ import type {
   JoinRoomMessage,
   Message,
   SessionDescMessage,
-} from './types.ts';
+} from "./types.ts";
 
 export class RoomChannel {
   private channel: BroadcastChannel;
@@ -13,42 +13,42 @@ export class RoomChannel {
   }
 
   onJoinRoom(handleFunc: (message: JoinRoomMessage) => void) {
-    console.log('onJoinRoom');
+    console.log("onJoinRoom");
     const listener = (e: MessageEvent) => {
       handleFunc(e.data);
     };
-    this.channel.addEventListener('message', listener);
+    this.channel.addEventListener("message", listener);
 
     return {
       unsubscribe: () => {
-        this.channel.removeEventListener('message', listener);
+        this.channel.removeEventListener("message", listener);
       },
     };
   }
 
   joinRoom(message: JoinRoomMessage) {
     this.channel.postMessage({
-      type: 'add-peer',
+      type: "add-peer",
       data: message,
     } as Message);
   }
 
   iceCandidate(message: IceCandidateMessage) {
     this.channel.postMessage({
-      type: 'ice-candidate',
+      type: "ice-candidate",
       data: message,
     } as Message);
   }
 
   sessionDescription(message: SessionDescMessage) {
     this.channel.postMessage({
-      type: 'session-desc',
+      type: "session-desc",
       data: message,
     } as Message);
   }
 
   close() {
-    console.log('close channel');
+    console.log("close channel");
     this.channel.close();
   }
 }

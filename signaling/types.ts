@@ -21,13 +21,13 @@ export type SessionDescMessage = JoinRoomMessage & {
 };
 
 export type ServerEventEmit =
-  | 'add-peer'
-  | 'remove-peer'
-  | 'ice-candidate'
-  | 'session-desc';
+  | "add-peer"
+  | "remove-peer"
+  | "ice-candidate"
+  | "session-desc";
 
 export type ClientEventEmit =
-  | 'join'
-  | 'disconnect'
-  | 'relay-ice-candidate'
-  | 'relay-session-desc';
+  | "join"
+  | "disconnect"
+  | "relay-ice-candidate"
+  | "relay-session-desc";

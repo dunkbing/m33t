@@ -1,5 +1,5 @@
-import { JSX, Ref } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
+import { JSX, Ref } from "preact";
+import { useEffect, useRef } from "preact/hooks";
 
 interface Props {
   stream: MediaStream | null;

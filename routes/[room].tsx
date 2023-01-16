@@ -1,7 +1,7 @@
-import { PageProps } from '$fresh/server.ts';
-import { Head } from '$fresh/runtime.ts';
-import Options from '@/islands/Options.tsx';
-import Videos from '@/islands/Videos.tsx';
+import { PageProps } from "$fresh/server.ts";
+import { Head } from "$fresh/runtime.ts";
+import Options from "@/islands/Options.tsx";
+import Videos from "@/islands/Videos.tsx";
 
 export default function Room(props: PageProps) {
   const roomId = props.url.pathname.substring(1);

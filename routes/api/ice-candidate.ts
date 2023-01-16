@@ -1,10 +1,10 @@
-import { HandlerContext } from '$fresh/server.ts';
-import { RoomChannel } from '@/signaling/room-channel.ts';
-import { IceCandidateMessage } from '@/signaling/types.ts';
+import { HandlerContext } from "$fresh/server.ts";
+import { RoomChannel } from "@/signaling/room-channel.ts";
+import { IceCandidateMessage } from "@/signaling/types.ts";
 
 export async function handler(
   req: Request,
-  _ctx: HandlerContext
+  _ctx: HandlerContext,
 ): Promise<Response> {
   const data = (await req.json()) as IceCandidateMessage;
   console.log(data);
@@ -16,5 +16,5 @@ export async function handler(
   });
   channel.close();
 
-  return new Response('OK');
+  return new Response("OK");
 }

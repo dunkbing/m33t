@@ -1,4 +1,4 @@
-import { IceCandidateMessage, JoinRoomMessage, Message } from './types.ts';
+import { IceCandidateMessage, JoinRoomMessage, Message } from "./types.ts";
 
 const server = {
   subscribe: (room: string, onMessage: (message: Message) => void) => {
@@ -8,18 +8,18 @@ const server = {
       const msg = JSON.parse(e.data);
       onMessage(msg);
     };
-    events.addEventListener('message', listener);
+    events.addEventListener("message", listener);
     console.log(events);
     return {
       unsubscribe() {
-        console.log('unsubscribe');
-        events.removeEventListener('message', listener);
+        console.log("unsubscribe");
+        events.removeEventListener("message", listener);
       },
     };
   },
   send: (data: Message) => {
-    fetch('/api/send', {
-      method: 'POST',
+    fetch("/api/send", {
+      method: "POST",
       body: JSON.stringify(data),
     });
   },

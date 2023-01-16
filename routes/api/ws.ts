@@ -12,52 +12,52 @@ function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
       clients[room] = new Map();
     }
     clients[room].set(clientId, ws);
-    if (evtData.type === 'call-offer') {
+    if (evtData.type === "call-offer") {
       for (const [k, v] of clients[room]) {
         if (k === clientId) continue;
         if (v.readyState !== v.OPEN) continue;
         v.send(
           JSON.stringify({
-            type: 'call-offer',
+            type: "call-offer",
             data,
             clientId,
-          })
+          }),
         );
       }
-    } else if (evtData.type === 'call-answer') {
+    } else if (evtData.type === "call-answer") {
       for (const [k, v] of clients[room]) {
         if (k === clientId) continue;
         if (v.readyState !== v.OPEN) continue;
         v.send(
           JSON.stringify({
-            type: 'call-answer',
+            type: "call-answer",
             data,
             clientId,
-          })
+          }),
         );
       }
-    } else if (evtData.type === 'answer') {
+    } else if (evtData.type === "answer") {
       for (const [k, v] of clients[room]) {
         if (k === clientId) continue;
         if (v.readyState !== v.OPEN) continue;
         v.send(
           JSON.stringify({
-            type: 'answer',
+            type: "answer",
             data,
             clientId,
-          })
+          }),
         );
       }
-    } else if (evtData.type === 'offer') {
+    } else if (evtData.type === "offer") {
       for (const [k, v] of clients[room]) {
         if (k === clientId) continue;
         if (v.readyState !== v.OPEN) continue;
         v.send(
           JSON.stringify({
-            type: 'offer',
+            type: "offer",
             data,
             clientId,
-          })
+          }),
         );
       }
     }
@@ -71,8 +71,8 @@ function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
 export const handler = (req: Request): Response => {
   const { socket, response } = Deno.upgradeWebSocket(req);
   const url = new URL(req.url);
-  const room = url.searchParams.get('room') || '';
-  const clientId = url.searchParams.get('clientId') || '';
+  const room = url.searchParams.get("room") || "";
+  const clientId = url.searchParams.get("clientId") || "";
   wsHandleFunc(socket, room, clientId);
   return response;
 };

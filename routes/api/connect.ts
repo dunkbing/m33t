@@ -1,9 +1,9 @@
-import { Handlers, RouteConfig } from '$fresh/server.ts';
-import { RoomChannel } from '@/signaling/room-channel.ts';
+import { Handlers, RouteConfig } from "$fresh/server.ts";
+import { RoomChannel } from "@/signaling/room-channel.ts";
 
 export const handler: Handlers = {
   GET(_req, ctx) {
-    console.log('connect', ctx.params.room);
+    console.log("connect", ctx.params.room);
     const channel = new RoomChannel(ctx.params.room);
 
     const stream = new ReadableStream({
@@ -19,11 +19,11 @@ export const handler: Handlers = {
     });
 
     return new Response(stream.pipeThrough(new TextEncoderStream()), {
-      headers: { 'content-type': 'text/event-stream' },
+      headers: { "content-type": "text/event-stream" },
     });
   },
 };
 
 export const config: RouteConfig = {
-  routeOverride: '/api/connect/:room',
+  routeOverride: "/api/connect/:room",
 };

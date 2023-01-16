@@ -1,29 +1,29 @@
-import { HandlerContext } from '$fresh/server.ts';
-import { RoomChannel } from '@/signaling/room-channel.ts';
+import { HandlerContext } from "$fresh/server.ts";
+import { RoomChannel } from "@/signaling/room-channel.ts";
 import {
   IceCandidateMessage,
   JoinRoomMessage,
   Message,
   SessionDescMessage,
-} from '@/signaling/types.ts';
+} from "@/signaling/types.ts";
 
 const clients: Record<string, string[]> = {};
 
 export async function handler(
   req: Request,
-  _ctx: HandlerContext
+  _ctx: HandlerContext,
 ): Promise<Response> {
   const body = (await req.json()) as Message;
   const channel = new RoomChannel(body.data.room);
 
   console.log(body.type);
   switch (body.type) {
-    case 'join': {
+    case "join": {
       const data = body.data as JoinRoomMessage;
       if (!clients[data.room]) {
         clients[data.room] = [];
       }
-      if (data.clientId in clients[data.room]) return new Response('OK');
+      if (data.clientId in clients[data.room]) return new Response("OK");
 
       for (const c of clients[data.room]) {
         channel.joinRoom({
@@ -40,12 +40,12 @@ export async function handler(
       });
       break;
     }
-    case 'relay-ice-candidate': {
+    case "relay-ice-candidate": {
       const data = body.data as IceCandidateMessage;
       channel.iceCandidate(data);
       break;
     }
-    case 'relay-session-desc': {
+    case "relay-session-desc": {
       const data = body.data as SessionDescMessage;
       if (data.clientId in clients[data.room]) {
         channel.sessionDescription(data);
@@ -56,5 +56,5 @@ export async function handler(
 
   channel.close();
 
-  return new Response('OK');
+  return new Response("OK");
 }
