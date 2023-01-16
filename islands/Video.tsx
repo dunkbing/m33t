@@ -1,4 +1,3 @@
-import { JSX, Ref } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
 interface Props {
@@ -15,13 +14,7 @@ const Video = (props: Props) => {
 
   return (
     <div>
-      <video
-        ref={videoRef}
-        class="rounded-lg"
-        width="100%"
-        autoPlay
-        playsInline
-      />
+      <video ref={videoRef} class="rounded-lg" autoPlay playsInline />
     </div>
   );
 };

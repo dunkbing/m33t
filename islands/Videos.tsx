@@ -6,19 +6,20 @@ interface Props {
   room: string;
 }
 
-const peers: Record<string, RTCPeerConnection> = {};
-
 export default function Videos(props: Props) {
   const clientId = useMemo(
     () => Math.random().toString(36).substring(2, 9),
     [],
   );
+  const [peers, setPeers] = useState<Record<string, RTCPeerConnection>>({});
   console.log("clientId", clientId);
   const [pc, setPc] = useState<RTCPeerConnection | null>(null);
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-  // const length = remoteStreams.length + 1 > 3 ? 3 : 2;
+  const [remoteStreams, setRemoteStreams] = useState<
+    ReadonlyArray<MediaStream>
+  >([]);
+  const length = remoteStreams.length + 1 > 3 ? 3 : 2;
 
   useEffect(() => {
     const ws_ = new WebSocket(
@@ -36,6 +37,7 @@ export default function Videos(props: Props) {
       if (pc) {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
+          audio: true,
         });
         const remoteStream_ = new MediaStream();
         stream.getTracks().forEach((track) => pc.addTrack(track, stream));
@@ -43,7 +45,7 @@ export default function Videos(props: Props) {
           event.streams[0]
             .getTracks()
             .forEach((track) => remoteStream_.addTrack(track));
-          setRemoteStream(remoteStream_);
+          setRemoteStreams([remoteStream_]);
         };
         setLocalStream(stream);
       }
@@ -114,17 +116,15 @@ export default function Videos(props: Props) {
       };
       ws.send(JSON.stringify({ type: "call-offer", data: offer }));
     })();
-  }, [ws, pc, localStream, remoteStream]);
+  }, [ws, pc, localStream]);
+  console.log("remoteStreams", remoteStreams);
 
   return (
-    <div class={`grid grid-cols-2 content-center justify-center w-5/6 gap-3`}>
+    <div
+      class={`grid grid-cols-${length} content-center justify-center w-7/8 gap-3`}
+    >
       <Video stream={localStream} />
-      <Video stream={remoteStream} />
-      {
-        /* {remoteStreams.map((stream, i) => (
-        <Video key={i} stream={stream} />
-      ))} */
-      }
+      {remoteStreams.map((stream) => <Video key={stream.id} stream={stream} />)}
     </div>
   );
 }
