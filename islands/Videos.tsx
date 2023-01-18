@@ -3,6 +3,7 @@ import { ICE_SERVERS } from "@/utils/constants.ts";
 import Video from "@/islands/Video.tsx";
 import { useUserMedia } from "@/hooks/index.ts";
 import { WsMessage } from "../types/types.ts";
+import Options from "./Options.tsx";
 
 interface Props {
   room: string;
@@ -23,6 +24,15 @@ export default function Videos(props: Props) {
   const localStream = useUserMedia({ video: true, audio: true });
   const [remoteStreams, setRemoteStreams] = useState<Array<RemoteStream>>([]);
   const length = remoteStreams.length + 1 > 3 ? 3 : remoteStreams.length + 1;
+  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [videoEnabled, setVideoEnabled] = useState(true);
+
+  useEffect(() => {
+    if (!localStream) return;
+
+    localStream.getAudioTracks()[0].enabled = audioEnabled;
+    localStream.getVideoTracks()[0].enabled = videoEnabled;
+  }, [localStream, audioEnabled, videoEnabled]);
 
   useEffect(() => {
     if (!localStream) return;
@@ -135,13 +145,26 @@ export default function Videos(props: Props) {
   }, [localStream]);
 
   return (
-    <div
-      class={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${length} w-7/8 gap-3 mt-5`}
-    >
-      <Video muted stream={localStream} id={id} />
-      {remoteStreams.map((rs) => (
-        <Video key={rs.clientId} id={rs.clientId} stream={rs.stream} />
-      ))}
+    <div class="flex flex-col justify-center items-center p-10 mx-auto w-screen min-h-screen bg-gradient-to-t from-gray-700 via-gray-900 to-black gap-5">
+      <div
+        class={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${length} w-7/8 gap-3 mt-5`}
+      >
+        <Video
+          muted
+          stream={localStream}
+          id={id}
+          videoDisabled={!videoEnabled}
+        />
+        {remoteStreams.map((rs) => (
+          <Video key={rs.clientId} id={rs.clientId} stream={rs.stream} />
+        ))}
+      </div>
+      <div class="fixed bottom-0">
+        <Options
+          onToggleAudio={() => setAudioEnabled(!audioEnabled)}
+          onToggleVideo={() => setVideoEnabled(!videoEnabled)}
+        />
+      </div>
     </div>
   );
 }

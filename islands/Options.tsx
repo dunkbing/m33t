@@ -23,17 +23,21 @@ interface MediaButtonProps {
 
 function MediaButton(props: MediaButtonProps) {
   const [enabled, setEnabled] = useState(true);
+  const toggle = () => {
+    props.onToggle?.();
+    setEnabled(!enabled);
+  };
   return (
     <>
       {props.type === "audio" && (
-        <OptionWrap onClick={() => setEnabled(!enabled)}>
+        <OptionWrap onClick={toggle}>
           {enabled
             ? <IconMicrophone size={36} />
             : <IconMicrophoneOff size={36} />}
         </OptionWrap>
       )}
       {props.type === "video" && (
-        <OptionWrap onClick={() => setEnabled(!enabled)}>
+        <OptionWrap onClick={toggle}>
           {enabled ? <IconVideo size={36} /> : <IconVideoOff size={36} />}
         </OptionWrap>
       )}
@@ -41,11 +45,16 @@ function MediaButton(props: MediaButtonProps) {
   );
 }
 
-export default function Options() {
+type OptionsProps = {
+  onToggleAudio?: () => void;
+  onToggleVideo?: () => void;
+};
+
+export default function Options(props: OptionsProps) {
   return (
     <div class="flex flex-row w-full md:w-1/2 lg:w-1/5 gap-2 items-center">
-      <MediaButton type="audio" />
-      <MediaButton type="video" />
+      <MediaButton type="audio" onToggle={props.onToggleAudio} />
+      <MediaButton type="video" onToggle={props.onToggleVideo} />
       <OptionWrap>
         <IconMessage size={36} />
       </OptionWrap>
