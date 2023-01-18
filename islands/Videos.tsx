@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { ICE_SERVERS } from "@/utils/constants.ts";
 import Video from "@/islands/Video.tsx";
 import { useUserMedia } from "@/hooks/index.ts";
+import { WsMessage } from "../types/types.ts";
 
 interface Props {
   room: string;
@@ -19,7 +20,7 @@ export default function Videos(props: Props) {
     return res;
   }, []);
   const peers = useMemo<Record<string, RTCPeerConnection>>(() => ({}), []);
-  const localStream = useUserMedia();
+  const localStream = useUserMedia({ video: true, audio: true });
   const [remoteStreams, setRemoteStreams] = useState<Array<RemoteStream>>([]);
   const length = remoteStreams.length + 1 > 3 ? 3 : remoteStreams.length + 1;
 
@@ -38,7 +39,7 @@ export default function Videos(props: Props) {
       ws.send(JSON.stringify({ type: "join" }));
     };
     ws.onmessage = async (msg) => {
-      const data = JSON.parse(msg.data);
+      const data = JSON.parse(msg.data) as WsMessage;
       let pc = peers[data.clientId];
       if (!pc) {
         pc = new RTCPeerConnection(ICE_SERVERS);
@@ -137,7 +138,7 @@ export default function Videos(props: Props) {
     <div
       class={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${length} w-7/8 gap-3 mt-5`}
     >
-      <Video stream={localStream} id={id} />
+      <Video muted stream={localStream} id={id} />
       {remoteStreams.map((rs) => (
         <Video key={rs.clientId} id={rs.clientId} stream={rs.stream} />
       ))}

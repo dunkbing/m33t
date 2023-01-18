@@ -1,72 +1,82 @@
+import { WsMessage } from "@/types/types.ts";
+
 const clients: Record<string, Map<string, WebSocket>> = {};
 
 function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
   ws.onmessage = (e) => {
-    const evtData = JSON.parse(e.data);
+    const evtData = JSON.parse(e.data) as WsMessage;
     const data = evtData.data;
     if (!clients[room]) {
       clients[room] = new Map();
     }
     clients[room].set(clientId, ws);
-    if (evtData.type === "call-offer") {
-      for (const [k, v] of clients[room]) {
-        if (k !== evtData.clientId) continue;
-        if (v.readyState !== v.OPEN) continue;
-        v.send(
-          JSON.stringify({
-            type: "call-offer",
-            data,
-            clientId,
-          }),
-        );
-      }
-    } else if (evtData.type === "call-answer") {
-      for (const [k, v] of clients[room]) {
-        if (k !== evtData.clientId) continue;
-        if (v.readyState !== v.OPEN) continue;
-        v.send(
-          JSON.stringify({
-            type: "call-answer",
-            data,
-            clientId,
-          }),
-        );
-      }
-    } else if (evtData.type === "answer") {
-      for (const [k, v] of clients[room]) {
-        if (k !== evtData.clientId) continue;
-        if (v.readyState !== v.OPEN) continue;
-        v.send(
-          JSON.stringify({
-            type: "answer",
-            data,
-            clientId,
-          }),
-        );
-      }
-    } else if (evtData.type === "offer") {
-      for (const [k, v] of clients[room]) {
-        if (k !== evtData.clientId) continue;
-        if (v.readyState !== v.OPEN) continue;
-        v.send(
-          JSON.stringify({
-            type: "offer",
-            data,
-            clientId,
-          }),
-        );
-      }
-    } else if (evtData.type === "join") {
-      for (const [k, v] of clients[room]) {
-        if (k === clientId) continue;
-        if (v.readyState !== v.OPEN) continue;
-        v.send(
-          JSON.stringify({
-            type: "join",
-            clientId,
-          }),
-        );
-      }
+    switch (evtData.type) {
+      case "join":
+        for (const [k, v] of clients[room]) {
+          if (k === clientId) continue;
+          if (v.readyState !== v.OPEN) continue;
+          v.send(
+            JSON.stringify({
+              type: "join",
+              clientId,
+            }),
+          );
+        }
+        break;
+      case "call-offer":
+        for (const [k, v] of clients[room]) {
+          if (k !== evtData.clientId) continue;
+          if (v.readyState !== v.OPEN) continue;
+          v.send(
+            JSON.stringify({
+              type: "call-offer",
+              data,
+              clientId,
+            }),
+          );
+        }
+        break;
+      case "call-answer":
+        for (const [k, v] of clients[room]) {
+          if (k !== evtData.clientId) continue;
+          if (v.readyState !== v.OPEN) continue;
+          v.send(
+            JSON.stringify({
+              type: "call-answer",
+              data,
+              clientId,
+            }),
+          );
+        }
+        break;
+      case "answer":
+        for (const [k, v] of clients[room]) {
+          if (k !== evtData.clientId) continue;
+          if (v.readyState !== v.OPEN) continue;
+          v.send(
+            JSON.stringify({
+              type: "answer",
+              data,
+              clientId,
+            }),
+          );
+        }
+        break;
+      case "offer":
+        for (const [k, v] of clients[room]) {
+          if (k !== evtData.clientId) continue;
+          if (v.readyState !== v.OPEN) continue;
+          v.send(
+            JSON.stringify({
+              type: "offer",
+              data,
+              clientId,
+            }),
+          );
+        }
+        break;
+      default:
+        break;
     }
   };
 

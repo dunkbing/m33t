@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "preact/hooks";
+import { JSX } from "preact/jsx-runtime";
 
 interface Props {
   id: string;
   stream: MediaStream | null;
 }
 
-const Video = (props: Props) => {
+const Video = (props: Props & JSX.HTMLAttributes<HTMLVideoElement>) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     if (videoRef.current) {
@@ -14,11 +15,11 @@ const Video = (props: Props) => {
   }, [videoRef.current, props.stream]);
 
   return (
-    <div>
-      {/* <p class="text-white">{props.id}</p> */}
+    <div class="aspect-video">
       <video
+        {...props}
         ref={videoRef}
-        class="rounded-xl object-cover w-full"
+        class="rounded-xl object-cover w-full aspect-video"
         autoPlay
         playsInline
       />
