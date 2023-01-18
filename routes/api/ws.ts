@@ -1,10 +1,6 @@
 const clients: Record<string, Map<string, WebSocket>> = {};
 
 function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
-  ws.onopen = () => {
-    ws.send(JSON.stringify({ clientId }));
-  };
-
   ws.onmessage = (e) => {
     const evtData = JSON.parse(e.data);
     const data = evtData.data;
@@ -14,8 +10,9 @@ function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
     clients[room].set(clientId, ws);
     if (evtData.type === "call-offer") {
       for (const [k, v] of clients[room]) {
-        if (k === clientId) continue;
+        if (k !== evtData.clientId) continue;
         if (v.readyState !== v.OPEN) continue;
+        console.log("send call-offer", data);
         v.send(
           JSON.stringify({
             type: "call-offer",
@@ -26,7 +23,7 @@ function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
       }
     } else if (evtData.type === "call-answer") {
       for (const [k, v] of clients[room]) {
-        if (k === clientId) continue;
+        if (k !== evtData.clientId) continue;
         if (v.readyState !== v.OPEN) continue;
         v.send(
           JSON.stringify({
@@ -38,7 +35,7 @@ function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
       }
     } else if (evtData.type === "answer") {
       for (const [k, v] of clients[room]) {
-        if (k === clientId) continue;
+        if (k !== evtData.clientId) continue;
         if (v.readyState !== v.OPEN) continue;
         v.send(
           JSON.stringify({
@@ -50,7 +47,7 @@ function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
       }
     } else if (evtData.type === "offer") {
       for (const [k, v] of clients[room]) {
-        if (k === clientId) continue;
+        if (k !== evtData.clientId) continue;
         if (v.readyState !== v.OPEN) continue;
         v.send(
           JSON.stringify({
@@ -60,11 +57,34 @@ function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
           }),
         );
       }
+    } else if (evtData.type === "join") {
+      for (const [k, v] of clients[room]) {
+        if (k === clientId) continue;
+        if (v.readyState !== v.OPEN) continue;
+        v.send(
+          JSON.stringify({
+            type: "join",
+            clientId,
+          }),
+        );
+      }
     }
   };
 
   ws.onclose = () => {
-    clients[room]?.delete(clientId);
+    const client = clients[room];
+    if (!client) return;
+    for (const [k, v] of client) {
+      if (k === clientId) continue;
+      if (v.readyState !== v.OPEN) continue;
+      v.send(
+        JSON.stringify({
+          type: "disconnect",
+          clientId,
+        }),
+      );
+    }
+    client.delete(clientId);
   };
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "preact/hooks";
 
 interface Props {
+  id: string;
   stream: MediaStream | null;
 }
 
@@ -14,6 +15,7 @@ const Video = (props: Props) => {
 
   return (
     <div>
+      <p class="text-white">{props.id}</p>
       <video ref={videoRef} class="rounded-lg" autoPlay playsInline />
     </div>
   );

@@ -6,125 +6,165 @@ interface Props {
   room: string;
 }
 
-export default function Videos(props: Props) {
-  const clientId = useMemo(
-    () => Math.random().toString(36).substring(2, 9),
-    [],
-  );
-  const [peers, setPeers] = useState<Record<string, RTCPeerConnection>>({});
-  console.log("clientId", clientId);
-  const [pc, setPc] = useState<RTCPeerConnection | null>(null);
-  const [ws, setWs] = useState<WebSocket | null>(null);
-  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  const [remoteStreams, setRemoteStreams] = useState<
-    ReadonlyArray<MediaStream>
-  >([]);
-  const length = remoteStreams.length + 1 > 3 ? 3 : 2;
+type RemoteStream = {
+  stream: MediaStream;
+  clientId: string;
+};
 
-  useEffect(() => {
-    const ws_ = new WebSocket(
-      `ws://localhost:8000/api/ws?clientId=${clientId}&room=${props.room}`,
-    );
-    const pc_ = new RTCPeerConnection(ICE_SERVERS);
-    setWs(ws_);
-    setPc(pc_);
+export default function Videos(props: Props) {
+  const id = useMemo(() => {
+    const res = Math.random().toString(36).substring(2, 9);
+    console.log("clientId", res);
+    return res;
   }, []);
+  // const arr = useMemo<Array<RemoteStream>>(() => [], []);
+  const peers = useMemo<Record<string, RTCPeerConnection>>(() => ({}), []);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStreams, setRemoteStreams] = useState<Array<RemoteStream>>([]);
+  const length = remoteStreams.length + 1 > 3 ? 3 : 2;
 
   useEffect(() => {
     async function getMediaStream() {
       if (!navigator.mediaDevices.getUserMedia) return;
-
-      if (pc) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
-        const remoteStream_ = new MediaStream();
-        stream.getTracks().forEach((track) => pc.addTrack(track, stream));
-        pc.ontrack = (event) => {
-          event.streams[0]
-            .getTracks()
-            .forEach((track) => remoteStream_.addTrack(track));
-          setRemoteStreams([remoteStream_]);
-        };
-        setLocalStream(stream);
-      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
+      setLocalStream(stream);
     }
 
     void getMediaStream();
-  }, [pc]);
+  }, []);
 
   useEffect(() => {
-    if (!ws || !pc || !localStream) return;
+    if (!localStream) return;
 
-    (function () {
-      ws.onmessage = async (msg) => {
-        const data = JSON.parse(msg.data);
-        console.log(data);
-        if (data.type === "call-offer") {
-          pc.onicecandidate = (event) => {
-            event.candidate &&
-              ws.send(
-                JSON.stringify({
-                  type: "answer",
-                  data: event.candidate.toJSON(),
-                }),
-              );
-          };
-          const offerDescription = data.data;
-          await pc.setRemoteDescription(
-            new RTCSessionDescription(offerDescription),
-          );
-
-          const answerDescription = await pc.createAnswer();
-          await pc.setLocalDescription(answerDescription);
-
-          const answer = {
-            type: answerDescription.type,
-            sdp: answerDescription.sdp,
-          };
-
-          ws.send(JSON.stringify({ type: "call-answer", data: answer }));
+    const ws = new WebSocket(
+      `ws://localhost:8000/api/ws?clientId=${id}&room=${props.room}`,
+    );
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: "join" }));
+    };
+    ws.onmessage = async (msg) => {
+      const data = JSON.parse(msg.data);
+      console.log(data);
+      let pc = peers[data.clientId];
+      if (!pc) {
+        pc = new RTCPeerConnection(ICE_SERVERS);
+        for (const track of localStream.getTracks()) {
+          pc.addTrack(track, localStream);
         }
-        if (data.type === "call-answer") {
-          if (!pc.currentRemoteDescription && data.data) {
-            const answerDescription = new RTCSessionDescription(data.data);
-            pc.setRemoteDescription(answerDescription);
+        const remoteStream = new MediaStream();
+        pc.ontrack = (event) => {
+          for (const track of event.streams[0].getTracks()) {
+            remoteStream.addTrack(track);
           }
-        }
-        if (data.type === "offer") {
-          pc.addIceCandidate(new RTCIceCandidate(data.data));
-        }
-        if (data.type === "answer") {
-          const candidate = new RTCIceCandidate(data.data);
-          pc.addIceCandidate(candidate);
-        }
-      };
-    })();
+        };
 
-    (async function () {
-      pc.onicecandidate = (event) => {
-        const data = event.candidate?.toJSON();
-        event.candidate && ws.send(JSON.stringify({ type: "offer", data }));
-      };
-      const offerDescription = await pc.createOffer();
-      await pc.setLocalDescription(offerDescription);
+        remoteStreams.push({ clientId: data.clientId, stream: remoteStream });
+        setRemoteStreams([...remoteStreams]);
+        peers[data.clientId] = pc;
+        console.log(peers);
+      }
+      if (data.type === "join") {
+        pc.onicecandidate = (event) => {
+          event.candidate &&
+            ws.send(
+              JSON.stringify({
+                type: "offer",
+                data: event.candidate?.toJSON(),
+                clientId: data.clientId,
+              }),
+            );
+        };
+        const offerDescription = await pc.createOffer();
+        await pc.setLocalDescription(offerDescription);
+        const offer = {
+          sdp: offerDescription.sdp,
+          type: offerDescription.type,
+        };
+        ws.send(
+          JSON.stringify({
+            type: "call-offer",
+            data: offer,
+            clientId: data.clientId,
+          }),
+        );
+      } else if (data.type === "call-offer") {
+        pc.onicecandidate = (event) => {
+          event.candidate &&
+            ws.send(
+              JSON.stringify({
+                type: "answer",
+                data: event.candidate.toJSON(),
+                clientId: data.clientId,
+              }),
+            );
+        };
+        const offerDescription = new RTCSessionDescription(data.data);
+        await pc.setRemoteDescription(offerDescription).catch(console.log);
 
-      const offer = {
-        sdp: offerDescription.sdp,
-        type: offerDescription.type,
-      };
-      ws.send(JSON.stringify({ type: "call-offer", data: offer }));
-    })();
-  }, [ws, pc, localStream]);
-  console.log("remoteStreams", remoteStreams);
+        const answerDescription = await pc.createAnswer();
+        await pc.setLocalDescription(answerDescription);
+
+        const answer = {
+          type: answerDescription.type,
+          sdp: answerDescription.sdp,
+        };
+
+        ws.send(
+          JSON.stringify({
+            type: "call-answer",
+            data: answer,
+            clientId: data.clientId,
+          }),
+        );
+      } else if (data.type === "call-answer") {
+        if (!pc.currentRemoteDescription && data.data) {
+          const answerDescription = new RTCSessionDescription(data.data);
+          pc.setRemoteDescription(answerDescription).catch(() =>
+            console.log("set remote call answer")
+          );
+        }
+      } else if (data.type === "offer" && data.data) {
+        const candidate = new RTCIceCandidate(data.data);
+        pc.addIceCandidate(candidate).catch((err) => {
+          console.log("offer", data.clientId, err);
+        });
+      } else if (data.type === "answer" && data.data) {
+        const candidate = new RTCIceCandidate(data.data);
+        pc.addIceCandidate(candidate).catch((err) => {
+          console.log("candidate", data.clientId, err);
+        });
+      } else if (data.type === "disconnect") {
+        delete peers[data.clientId];
+      }
+      const keys = Object.keys(peers);
+      if (keys.length !== remoteStreams.length) {
+        console.log("disconnect-bf", data.clientId, remoteStreams);
+        const streams = remoteStreams.filter((rs) => {
+          console.log(
+            "filter",
+            rs.clientId,
+            data.clientId,
+            rs.clientId !== data.clientId,
+          );
+          return keys.includes(rs.clientId);
+        });
+        console.log("disconnect-af", streams);
+        setRemoteStreams([...streams]);
+      }
+    };
+  }, [localStream]);
 
   return (
     <div
       class={`grid grid-cols-${length} content-center justify-center w-7/8 gap-3`}
     >
-      <Video stream={localStream} />
-      {remoteStreams.map((stream) => <Video key={stream.id} stream={stream} />)}
+      <Video stream={localStream} id={id} />
+      {remoteStreams.map((rs) => (
+        <Video key={rs.clientId} id={rs.clientId} stream={rs.stream} />
+      ))}
     </div>
   );
 }
