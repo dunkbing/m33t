@@ -52,7 +52,10 @@ export default function Options() {
       <OptionWrap>
         <IconScreenShare size={36} />
       </OptionWrap>
-      <button class="px-4 py-3.5 bg-red-400 font-bold text-white border border-b-4 border-r-4 border-red-600 rounded-lg shadow-lg hover:bg-red-500 hover:shadow-sm hover:border-b-2 hover:border-r-2">
+      <button
+        class="px-4 py-3.5 bg-red-400 font-bold text-white border border-b-4 border-r-4 border-red-600 rounded-lg shadow-lg hover:bg-red-500 hover:shadow-sm hover:border-b-2 hover:border-r-2"
+        onClick={() => close?.()}
+      >
         Leave
       </button>
     </div>
