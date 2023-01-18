@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { ICE_SERVERS } from "@/utils/constants.ts";
 import Video from "@/islands/Video.tsx";
+import { useUserMedia } from "@/hooks/index.ts";
 
 interface Props {
   room: string;
@@ -18,29 +19,21 @@ export default function Videos(props: Props) {
     return res;
   }, []);
   const peers = useMemo<Record<string, RTCPeerConnection>>(() => ({}), []);
-  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const localStream = useUserMedia();
   const [remoteStreams, setRemoteStreams] = useState<Array<RemoteStream>>([]);
   const length = remoteStreams.length + 1 > 3 ? 3 : remoteStreams.length + 1;
 
   useEffect(() => {
-    async function getMediaStream() {
-      if (!navigator.mediaDevices.getUserMedia) return;
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-      setLocalStream(stream);
-    }
-
-    void getMediaStream();
-  }, []);
-
-  useEffect(() => {
     if (!localStream) return;
 
-    const ws = new WebSocket(
-      `ws://localhost:8000/api/ws?clientId=${id}&room=${props.room}`,
-    );
+    const { protocol, host } = location;
+    let wsProtocol = "ws";
+    if (protocol === "https") {
+      wsProtocol = "wss";
+    }
+    const url =
+      `${wsProtocol}://${host}/api/ws?clientId=${id}&room=${props.room}`;
+    const ws = new WebSocket(url);
     ws.onopen = () => {
       ws.send(JSON.stringify({ type: "join" }));
     };
