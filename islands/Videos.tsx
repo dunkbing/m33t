@@ -17,7 +17,6 @@ export default function Videos(props: Props) {
     console.log("clientId", res);
     return res;
   }, []);
-  // const arr = useMemo<Array<RemoteStream>>(() => [], []);
   const peers = useMemo<Record<string, RTCPeerConnection>>(() => ({}), []);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStreams, setRemoteStreams] = useState<Array<RemoteStream>>([]);
@@ -47,7 +46,6 @@ export default function Videos(props: Props) {
     };
     ws.onmessage = async (msg) => {
       const data = JSON.parse(msg.data);
-      console.log(data);
       let pc = peers[data.clientId];
       if (!pc) {
         pc = new RTCPeerConnection(ICE_SERVERS);
@@ -64,7 +62,6 @@ export default function Videos(props: Props) {
         remoteStreams.push({ clientId: data.clientId, stream: remoteStream });
         setRemoteStreams([...remoteStreams]);
         peers[data.clientId] = pc;
-        console.log(peers);
       }
       if (data.type === "join") {
         pc.onicecandidate = (event) => {
@@ -102,7 +99,7 @@ export default function Videos(props: Props) {
             );
         };
         const offerDescription = new RTCSessionDescription(data.data);
-        await pc.setRemoteDescription(offerDescription).catch(console.log);
+        await pc.setRemoteDescription(offerDescription);
 
         const answerDescription = await pc.createAnswer();
         await pc.setLocalDescription(answerDescription);
@@ -122,36 +119,22 @@ export default function Videos(props: Props) {
       } else if (data.type === "call-answer") {
         if (!pc.currentRemoteDescription && data.data) {
           const answerDescription = new RTCSessionDescription(data.data);
-          pc.setRemoteDescription(answerDescription).catch(() =>
-            console.log("set remote call answer")
-          );
+          pc.setRemoteDescription(answerDescription);
         }
       } else if (data.type === "offer" && data.data) {
         const candidate = new RTCIceCandidate(data.data);
-        pc.addIceCandidate(candidate).catch((err) => {
-          console.log("offer", data.clientId, err);
-        });
+        pc.addIceCandidate(candidate);
       } else if (data.type === "answer" && data.data) {
         const candidate = new RTCIceCandidate(data.data);
-        pc.addIceCandidate(candidate).catch((err) => {
-          console.log("candidate", data.clientId, err);
-        });
+        pc.addIceCandidate(candidate);
       } else if (data.type === "disconnect") {
         delete peers[data.clientId];
       }
       const keys = Object.keys(peers);
       if (keys.length !== remoteStreams.length) {
-        console.log("disconnect-bf", data.clientId, remoteStreams);
-        const streams = remoteStreams.filter((rs) => {
-          console.log(
-            "filter",
-            rs.clientId,
-            data.clientId,
-            rs.clientId !== data.clientId,
-          );
-          return keys.includes(rs.clientId);
-        });
-        console.log("disconnect-af", streams);
+        const streams = remoteStreams.filter((rs) =>
+          keys.includes(rs.clientId)
+        );
         setRemoteStreams([...streams]);
       }
     };

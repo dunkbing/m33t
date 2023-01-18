@@ -12,7 +12,6 @@ function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
       for (const [k, v] of clients[room]) {
         if (k !== evtData.clientId) continue;
         if (v.readyState !== v.OPEN) continue;
-        console.log("send call-offer", data);
         v.send(
           JSON.stringify({
             type: "call-offer",
