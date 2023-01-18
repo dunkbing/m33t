@@ -28,7 +28,7 @@ export default function Videos(props: Props) {
 
     const { protocol, host } = location;
     let wsProtocol = "ws";
-    if (protocol === "https") {
+    if (protocol.includes("https")) {
       wsProtocol = "wss";
     }
     const url =
