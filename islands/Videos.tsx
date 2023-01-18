@@ -21,7 +21,7 @@ export default function Videos(props: Props) {
   const peers = useMemo<Record<string, RTCPeerConnection>>(() => ({}), []);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStreams, setRemoteStreams] = useState<Array<RemoteStream>>([]);
-  const length = remoteStreams.length + 1 > 3 ? 3 : 2;
+  const length = remoteStreams.length + 1 > 3 ? 3 : remoteStreams.length + 1;
 
   useEffect(() => {
     async function getMediaStream() {
@@ -159,7 +159,7 @@ export default function Videos(props: Props) {
 
   return (
     <div
-      class={`grid grid-cols-${length} content-center justify-center w-7/8 gap-3`}
+      class={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${length} w-7/8 gap-3 mt-5`}
     >
       <Video stream={localStream} id={id} />
       {remoteStreams.map((rs) => (

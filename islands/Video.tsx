@@ -15,8 +15,13 @@ const Video = (props: Props) => {
 
   return (
     <div>
-      <p class="text-white">{props.id}</p>
-      <video ref={videoRef} class="rounded-lg" autoPlay playsInline />
+      {/* <p class="text-white">{props.id}</p> */}
+      <video
+        ref={videoRef}
+        class="rounded-xl object-cover w-full"
+        autoPlay
+        playsInline
+      />
     </div>
   );
 };

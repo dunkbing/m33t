@@ -10,9 +10,11 @@ export default function Room(props: PageProps) {
       <Head>
         <title>M33t</title>
       </Head>
-      <div class="flex flex-col justify-center items-center p-10 mx-auto w-screen h-screen bg-gradient-to-t from-gray-700 via-gray-900 to-black gap-5">
-        <Videos room={roomId} length={1} />
-        <Options />
+      <div class="flex flex-col justify-center items-center p-10 mx-auto w-screen min-h-screen bg-gradient-to-t from-gray-700 via-gray-900 to-black gap-5">
+        <Videos room={roomId} />
+        <div class="fixed bottom-0">
+          <Options />
+        </div>
       </div>
     </>
   );

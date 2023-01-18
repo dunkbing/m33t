@@ -20,7 +20,7 @@ interface Props {
 
 export default function Options(props: Props) {
   return (
-    <div class="flex flex-row gap-2 items-center">
+    <div class="flex flex-row w-full md:w-1/2 lg:w-1/5 gap-2 items-center">
       <OptionWrap>
         <IconMicrophone size={36} />
       </OptionWrap>
