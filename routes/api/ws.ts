@@ -1,4 +1,4 @@
-import { WsMessage } from "@/types/types.ts";
+import { WsMediaMessage, WsMessage } from "@/types/types.ts";
 
 const clients: Record<string, Map<string, WebSocket>> = {};
 
@@ -72,6 +72,32 @@ function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
               data,
               clientId,
             }),
+          );
+        }
+        break;
+      case "toggle-video":
+        for (const [k, v] of clients[room]) {
+          if (k === evtData.clientId) continue;
+          if (v.readyState !== v.OPEN) continue;
+          v.send(
+            JSON.stringify({
+              type: "toggle-video",
+              clientId: evtData.clientId,
+              enabled: (evtData as unknown as WsMediaMessage).enabled,
+            } as WsMediaMessage),
+          );
+        }
+        break;
+      case "toggle-audio":
+        for (const [k, v] of clients[room]) {
+          if (k === evtData.clientId) continue;
+          if (v.readyState !== v.OPEN) continue;
+          v.send(
+            JSON.stringify({
+              type: "toggle-audio",
+              clientId: evtData.clientId,
+              enabled: (evtData as unknown as WsMediaMessage).enabled,
+            } as WsMediaMessage),
           );
         }
         break;

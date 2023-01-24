@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import { ICE_SERVERS } from "@/utils/constants.ts";
 import Video from "@/islands/Video.tsx";
 import { useUserMedia } from "@/hooks/index.ts";
-import { WsMessage } from "../types/types.ts";
-import Options from "./Options.tsx";
+import { WsMediaMessage, WsMessage } from "@/types/types.ts";
+import Options from "@/islands/Options.tsx";
 
 interface Props {
   room: string;
@@ -12,6 +12,8 @@ interface Props {
 type RemoteStream = {
   stream: MediaStream;
   clientId: string;
+  videoEnabled: boolean;
+  audioEnabled: boolean;
 };
 
 export default function Videos(props: Props) {
@@ -20,12 +22,37 @@ export default function Videos(props: Props) {
     console.log("clientId", res);
     return res;
   }, []);
+  const [ws, setWs] = useState<WebSocket | null>(null);
   const peers = useMemo<Record<string, RTCPeerConnection>>(() => ({}), []);
   const localStream = useUserMedia({ video: true, audio: true });
   const [remoteStreams, setRemoteStreams] = useState<Array<RemoteStream>>([]);
   const length = remoteStreams.length + 1 > 3 ? 3 : remoteStreams.length + 1;
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
+
+  const toggleAudio = useCallback(() => {
+    const enabled = !audioEnabled;
+    setAudioEnabled(enabled);
+    ws?.send(
+      JSON.stringify({
+        type: "toggle-audio",
+        clientId: id,
+        enabled,
+      } as WsMediaMessage),
+    );
+  }, [ws, audioEnabled]);
+
+  const toggleVideo = useCallback(() => {
+    const enabled = !videoEnabled;
+    setVideoEnabled(enabled);
+    ws?.send(
+      JSON.stringify({
+        type: "toggle-video",
+        clientId: id,
+        enabled,
+      } as WsMediaMessage),
+    );
+  }, [ws, videoEnabled]);
 
   useEffect(() => {
     if (!localStream) return;
@@ -61,10 +88,18 @@ export default function Videos(props: Props) {
           for (const track of event.streams[0].getTracks()) {
             remoteStream.addTrack(track);
           }
+          const rs = remoteStreams.find((r) => r.clientId === data.clientId);
+          if (!rs) {
+            remoteStreams.push({
+              clientId: data.clientId,
+              stream: remoteStream,
+              videoEnabled: remoteStream.getVideoTracks()[0]?.enabled,
+              audioEnabled: remoteStream.getAudioTracks()[0]?.enabled,
+            });
+            setRemoteStreams([...remoteStreams]);
+          }
         };
 
-        remoteStreams.push({ clientId: data.clientId, stream: remoteStream });
-        setRemoteStreams([...remoteStreams]);
         peers[data.clientId] = pc;
       }
       if (data.type === "join") {
@@ -131,6 +166,22 @@ export default function Videos(props: Props) {
       } else if (data.type === "answer" && data.data) {
         const candidate = new RTCIceCandidate(data.data);
         pc.addIceCandidate(candidate);
+      } else if (data.type === "toggle-video") {
+        const d = data as unknown as WsMediaMessage;
+        const rs = remoteStreams.find((r) => r.clientId === d.clientId);
+        if (rs) {
+          rs.stream.getVideoTracks()[0].enabled = d.enabled;
+          rs.videoEnabled = d.enabled;
+          setRemoteStreams([...remoteStreams]);
+        }
+      } else if (data.type === "toggle-audio") {
+        const d = data as unknown as WsMediaMessage;
+        const rs = remoteStreams.find((r) => r.clientId === d.clientId);
+        if (rs) {
+          rs.stream.getAudioTracks()[0].enabled = d.enabled;
+          rs.audioEnabled = d.enabled;
+          setRemoteStreams([...remoteStreams]);
+        }
       } else if (data.type === "disconnect") {
         delete peers[data.clientId];
       }
@@ -142,6 +193,7 @@ export default function Videos(props: Props) {
         setRemoteStreams([...streams]);
       }
     };
+    setWs(ws);
   }, [localStream]);
 
   return (
@@ -153,17 +205,21 @@ export default function Videos(props: Props) {
           muted
           stream={localStream}
           id={id}
-          videoDisabled={!videoEnabled}
+          videoEnabled={videoEnabled}
+          audioEnabled={audioEnabled}
         />
         {remoteStreams.map((rs) => (
-          <Video key={rs.clientId} id={rs.clientId} stream={rs.stream} />
+          <Video
+            key={rs.clientId}
+            id={rs.clientId}
+            stream={rs.stream}
+            videoEnabled={rs.videoEnabled}
+            audioEnabled={rs.audioEnabled}
+          />
         ))}
       </div>
       <div class="fixed bottom-0">
-        <Options
-          onToggleAudio={() => setAudioEnabled(!audioEnabled)}
-          onToggleVideo={() => setVideoEnabled(!videoEnabled)}
-        />
+        <Options onToggleAudio={toggleAudio} onToggleVideo={toggleVideo} />
       </div>
     </div>
   );

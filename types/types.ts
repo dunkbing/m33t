@@ -1,12 +1,20 @@
+export type MessageType =
+  | "join"
+  | "call-offer"
+  | "call-answer"
+  | "offer"
+  | "answer"
+  | "disconnect"
+  | "toggle-video"
+  | "toggle-audio";
+
 export interface WsMessage {
   clientId: string;
-  type:
-    | "join"
-    | "call-offer"
-    | "call-answer"
-    | "offer"
-    | "answer"
-    | "disconnect";
+  type: MessageType;
   // deno-lint-ignore no-explicit-any
   data: any;
 }
+
+export type WsMediaMessage = Pick<WsMessage, "clientId" | "type"> & {
+  enabled: boolean;
+};

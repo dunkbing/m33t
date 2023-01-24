@@ -1,4 +1,4 @@
-import { useContext, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 import IconMicrophone from "ticons/tsx/microphone.tsx";
 import IconMicrophoneOff from "ticons/tsx/microphone-off.tsx";
