@@ -6,6 +6,7 @@ import IconVideo from "ticons/tsx/video.tsx";
 import IconVideoOff from "ticons/tsx/video-off.tsx";
 import IconMessage from "ticons/tsx/message.tsx";
 import IconScreenShare from "ticons/tsx/screen-share.tsx";
+import IconScreenShareOff from "ticons/tsx/screen-share-off.tsx";
 import IconInfoCircle from "ticons/tsx/info-circle.tsx";
 
 function OptionWrap(props: JSX.HTMLAttributes<HTMLDivElement>) {
@@ -82,8 +83,10 @@ function Info() {
 }
 
 type OptionsProps = {
+  screenSharing?: boolean;
   onToggleAudio?: () => void;
   onToggleVideo?: () => void;
+  onToggleScreenShare?: () => void;
 };
 
 export default function Options(props: OptionsProps) {
@@ -101,8 +104,10 @@ export default function Options(props: OptionsProps) {
         <OptionWrap>
           <IconMessage size={36} />
         </OptionWrap>
-        <OptionWrap>
-          <IconScreenShare size={36} />
+        <OptionWrap onClick={props.onToggleScreenShare}>
+          {props.screenSharing
+            ? <IconScreenShareOff class="text-red-300" size={36} />
+            : <IconScreenShare size={36} />}
         </OptionWrap>
         <button
           class="px-4 py-3.5 bg-red-400 font-bold text-white border border-b-4 border-r-4 border-red-600 rounded-lg shadow-lg hover:bg-red-500 hover:shadow-sm hover:border-b-2 hover:border-r-2"

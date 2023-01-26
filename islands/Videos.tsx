@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import { ICE_SERVERS } from "@/utils/constants.ts";
 import Video from "@/islands/Video.tsx";
-import { useUserMedia } from "@/hooks/index.ts";
 import { WsMediaMessage, WsMessage } from "@/types/types.ts";
 import Options from "@/islands/Options.tsx";
 
@@ -24,11 +23,12 @@ export default function Videos(props: Props) {
   }, []);
   const [ws, setWs] = useState<WebSocket | null>(null);
   const peers = useMemo<Record<string, RTCPeerConnection>>(() => ({}), []);
-  const localStream = useUserMedia({ video: true, audio: true });
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStreams, setRemoteStreams] = useState<Array<RemoteStream>>([]);
   const length = remoteStreams.length + 1 > 3 ? 3 : remoteStreams.length + 1;
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
+  const [sharing, setSharing] = useState(false);
 
   const toggleAudio = useCallback(() => {
     const enabled = !audioEnabled;
@@ -53,6 +53,63 @@ export default function Videos(props: Props) {
       } as WsMediaMessage),
     );
   }, [ws, videoEnabled]);
+
+  const toggleScreenShare = useCallback(async () => {
+    try {
+      if (sharing) {
+        setSharing(false);
+        setLocalStream(null);
+        return;
+      }
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+      });
+      stream.getVideoTracks()[0].onended = function () {
+        setSharing(false);
+        setLocalStream(null);
+      };
+      for (const pId in peers) {
+        const sender = peers[pId]
+          .getSenders()
+          .find((s) => (s.track ? s.track?.kind === "video" : false));
+        sender?.replaceTrack(stream.getVideoTracks()[0]);
+      }
+      setSharing(true);
+      setLocalStream(stream);
+    } catch (error) {
+      alert(error);
+    }
+  }, [ws, sharing, navigator.mediaDevices]);
+
+  useEffect(() => {
+    async function enableStream() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        for (const pId in peers) {
+          const sender = peers[pId]
+            .getSenders()
+            .find((s) => (s.track ? s.track?.kind === "video" : false));
+          sender?.replaceTrack(stream.getVideoTracks()[0]);
+        }
+        setLocalStream(stream);
+      } catch (err) {
+        console.log("getUserMediaError", err);
+      }
+    }
+
+    if (!localStream) {
+      enableStream();
+    } else {
+      return function cleanup() {
+        localStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+      };
+    }
+  }, [localStream]);
 
   useEffect(() => {
     if (!localStream) return;
@@ -243,7 +300,12 @@ export default function Videos(props: Props) {
         ))}
       </div>
       <div class="fixed bottom-0">
-        <Options onToggleAudio={toggleAudio} onToggleVideo={toggleVideo} />
+        <Options
+          screenSharing={sharing}
+          onToggleAudio={toggleAudio}
+          onToggleVideo={toggleVideo}
+          onToggleScreenShare={toggleScreenShare}
+        />
       </div>
     </div>
   );
