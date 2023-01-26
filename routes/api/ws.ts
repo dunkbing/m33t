@@ -1,4 +1,8 @@
-import { WsMediaMessage, WsMessage } from "@/types/types.ts";
+import {
+  WsChangeUsernameMsg,
+  WsMediaMessage,
+  WsMessage,
+} from "@/types/types.ts";
 
 const clients: Record<string, Map<string, WebSocket>> = {};
 
@@ -98,6 +102,19 @@ function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
               clientId: evtData.clientId,
               enabled: (evtData as unknown as WsMediaMessage).enabled,
             } as WsMediaMessage),
+          );
+        }
+        break;
+      case "change-username":
+        for (const [k, v] of clients[room]) {
+          if (k === evtData.clientId) continue;
+          if (v.readyState !== v.OPEN) continue;
+          v.send(
+            JSON.stringify({
+              type: "change-username",
+              clientId: evtData.clientId,
+              username: (evtData as unknown as WsChangeUsernameMsg).username,
+            } as WsChangeUsernameMsg),
           );
         }
         break;

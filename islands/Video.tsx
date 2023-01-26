@@ -7,6 +7,7 @@ import IconMicrophoneOff from "ticons/tsx/microphone-off.tsx";
 
 interface Props {
   id: string;
+  username?: string;
   stream: MediaStream | null;
   audioEnabled?: boolean;
   videoEnabled?: boolean;
@@ -34,7 +35,12 @@ const Video = (props: Props & JSX.HTMLAttributes<HTMLVideoElement>) => {
         autoPlay
         playsInline
       />
-      <div class="absolute inset-0 flex z-10 ml-1 mt-1">
+      {props.username && (
+        <div class="absolute flex z-10 left-0 top-0 ml-1 mt-1 bg-gray-800 bg-opacity-60 text-white p-1 rounded-md">
+          {props.username}
+        </div>
+      )}
+      <div class="absolute flex z-10 left-0 bottom-0 ml-1 mb-1">
         {props.audioEnabled
           ? <IconMicrophone size={25} color="white" />
           : <IconMicrophoneOff size={25} color="white" />}

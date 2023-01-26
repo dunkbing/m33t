@@ -6,7 +6,8 @@ export type MessageType =
   | "answer"
   | "disconnect"
   | "toggle-video"
-  | "toggle-audio";
+  | "toggle-audio"
+  | "change-username";
 
 export interface WsMessage {
   clientId: string;
@@ -17,4 +18,8 @@ export interface WsMessage {
 
 export type WsMediaMessage = Pick<WsMessage, "clientId" | "type"> & {
   enabled: boolean;
+};
+
+export type WsChangeUsernameMsg = Pick<WsMessage, "clientId" | "type"> & {
+  username: string;
 };

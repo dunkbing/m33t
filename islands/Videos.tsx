@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
-import { ICE_SERVERS } from "@/utils/constants.ts";
+import { ICE_SERVERS, USERNAME_KEY } from "@/utils/constants.ts";
 import Video from "@/islands/Video.tsx";
-import { WsMediaMessage, WsMessage } from "@/types/types.ts";
+import {
+  WsChangeUsernameMsg,
+  WsMediaMessage,
+  WsMessage,
+} from "@/types/types.ts";
 import Options from "@/islands/Options.tsx";
 
 interface Props {
@@ -11,6 +15,7 @@ interface Props {
 type RemoteStream = {
   stream: MediaStream;
   clientId: string;
+  username: string;
   videoEnabled: boolean;
   audioEnabled: boolean;
 };
@@ -21,6 +26,7 @@ export default function Videos(props: Props) {
     console.log("clientId", res);
     return res;
   }, []);
+  const [username, setUsername] = useState("");
   const [ws, setWs] = useState<WebSocket | null>(null);
   const peers = useMemo<Record<string, RTCPeerConnection>>(() => ({}), []);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
@@ -80,6 +86,28 @@ export default function Videos(props: Props) {
       alert(error);
     }
   }, [ws, sharing, navigator.mediaDevices]);
+
+  const changeUsername = useCallback(
+    (name: string) => {
+      if (ws) {
+        ws.send(
+          JSON.stringify({
+            clientId: id,
+            type: "change-username",
+            username: name,
+          } as WsChangeUsernameMsg),
+        );
+      }
+      localStorage.setItem(USERNAME_KEY, name);
+      setUsername(name);
+    },
+    [ws],
+  );
+
+  useEffect(() => {
+    const n = localStorage.getItem(USERNAME_KEY) || "";
+    setUsername(n);
+  }, [localStorage]);
 
   useEffect(() => {
     async function enableStream() {
@@ -149,6 +177,7 @@ export default function Videos(props: Props) {
           if (!rs) {
             remoteStreams.push({
               clientId: data.clientId,
+              username,
               stream: remoteStream,
               videoEnabled: remoteStream.getVideoTracks()[0]?.enabled,
               audioEnabled: remoteStream.getAudioTracks()[0]?.enabled,
@@ -258,6 +287,15 @@ export default function Videos(props: Props) {
           }
           break;
         }
+        case "change-username": {
+          const d = data as unknown as WsChangeUsernameMsg;
+          const rs = remoteStreams.find((r) => r.clientId === d.clientId);
+          if (rs) {
+            rs.username = d.username;
+            setRemoteStreams([...remoteStreams]);
+          }
+          break;
+        }
         case "disconnect": {
           delete peers[data.clientId];
           break;
@@ -283,16 +321,18 @@ export default function Videos(props: Props) {
         class={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${length} w-7/8 gap-3 mt-5`}
       >
         <Video
+          id={id}
+          username={`${username}(you)`}
           muted
           stream={localStream}
-          id={id}
           videoEnabled={videoEnabled}
           audioEnabled={audioEnabled}
         />
         {remoteStreams.map((rs) => (
           <Video
-            key={rs.clientId}
             id={rs.clientId}
+            username={rs.username}
+            key={rs.clientId}
             stream={rs.stream}
             videoEnabled={rs.videoEnabled}
             audioEnabled={rs.audioEnabled}
@@ -301,10 +341,12 @@ export default function Videos(props: Props) {
       </div>
       <div class="fixed bottom-0">
         <Options
+          username={username}
           screenSharing={sharing}
           onToggleAudio={toggleAudio}
           onToggleVideo={toggleVideo}
           onToggleScreenShare={toggleScreenShare}
+          onChangeName={changeUsername}
         />
       </div>
     </div>

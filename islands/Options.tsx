@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { JSX } from "preact/jsx-runtime";
 import IconMicrophone from "ticons/tsx/microphone.tsx";
 import IconMicrophoneOff from "ticons/tsx/microphone-off.tsx";
@@ -8,6 +8,20 @@ import IconMessage from "ticons/tsx/message.tsx";
 import IconScreenShare from "ticons/tsx/screen-share.tsx";
 import IconScreenShareOff from "ticons/tsx/screen-share-off.tsx";
 import IconInfoCircle from "ticons/tsx/info-circle.tsx";
+
+function debounce<T extends unknown[], U>(
+  wait: number,
+  callback: (...args: T) => PromiseLike<U> | U,
+) {
+  let timer: number;
+
+  return (...args: T): Promise<U> => {
+    clearTimeout(timer);
+    return new Promise((resolve) => {
+      timer = setTimeout(() => resolve(callback(...args)), wait);
+    });
+  };
+}
 
 function OptionWrap(props: JSX.HTMLAttributes<HTMLDivElement>) {
   return (
@@ -47,15 +61,25 @@ function MediaButton(props: MediaButtonProps) {
   );
 }
 
-function Info() {
+function Info(props: {
+  username?: string;
+  onChangeName?: (name: string) => void;
+}) {
   const [link, setLink] = useState("");
   const [copied, setCopied] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (window.location) {
       setLink(window.location.href);
     }
   }, [window.location]);
+
+  useEffect(() => {
+    if (props.username && inputRef.current) {
+      inputRef.current.defaultValue = props.username;
+    }
+  }, [props.username, inputRef.current]);
 
   const copy = useCallback(() => {
     if (navigator.clipboard) {
@@ -69,8 +93,31 @@ function Info() {
     }
   }, [navigator.clipboard, link]);
 
+  const searchDebounce = useCallback(
+    debounce(1000, (text: string) => {
+      props.onChangeName?.(text);
+    }),
+    [props.onChangeName],
+  );
+
+  const handleChange: JSX.GenericEventHandler<HTMLInputElement> = (e) => {
+    void searchDebounce(e.currentTarget.value);
+  };
+
   return (
     <div class="flex flex-col items-center bg-white rounded-md p-1.5 mb-1.5">
+      <div class="flex flex-row gap-1 items-center">
+        <label class="font-semibold" htmlFor="name">
+          Name
+        </label>
+        <input
+          ref={inputRef}
+          onChange={handleChange}
+          id="name"
+          type="text"
+          class="px-1 bg-white rounded border(gray-500 2)"
+        />
+      </div>
       <p class="italic">Share this link to start talking.</p>
       <div class="flex flex-row gap-2">
         <p class="text-blue-600">{link}</p>
@@ -84,9 +131,11 @@ function Info() {
 
 type OptionsProps = {
   screenSharing?: boolean;
+  username?: string;
   onToggleAudio?: () => void;
   onToggleVideo?: () => void;
   onToggleScreenShare?: () => void;
+  onChangeName?: (name: string) => void;
 };
 
 export default function Options(props: OptionsProps) {
@@ -94,7 +143,9 @@ export default function Options(props: OptionsProps) {
 
   return (
     <div class="flex flex-col items-center">
-      {showInfo && <Info />}
+      {showInfo && (
+        <Info username={props.username} onChangeName={props.onChangeName} />
+      )}
       <div class="flex flex-row gap-2 items-center">
         <OptionWrap onClick={() => setShowInfo(!showInfo)}>
           <IconInfoCircle size={36} />
