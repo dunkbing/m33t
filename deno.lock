@@ -131,6 +131,7 @@
     "https://deno.land/x/socket_io@0.1.1/packages/socket.io/lib/server.ts": "c8814985a7cfa0dbad70a2daee6e6893f79b2027ddac7a3e7ba433f3c779944b",
     "https://deno.land/x/socket_io@0.1.1/packages/socket.io/lib/socket.ts": "950c6002fa48f31925badf3aa4dc0edc3d3bba9a6a1a15897c0209dce148f1e4",
     "https://deno.land/x/socket_io@0.1.1/packages/socket.io/mod.ts": "b91bcfaf55f45e45b9f5a779856d8c2a07543e7f3cc89c365ed636ee6742220a",
+    "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/info-circle.tsx": "95f8ce0771c4c8f9d8e1cd073adaa2e37fb118d8f0512fa0de35851cf15b3fe2",
     "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/message.tsx": "03eca0e427352d9f599097a4b65af0aeb9abca524dce8aa4e8a3d12dffb825ee",
     "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/microphone-off.tsx": "39f40c729205e22f4270d36b95dc86b8fece06d5a62cb91a5c05958543e82a99",
     "https://deno.land/x/tabler_icons_tsx@0.0.2/tsx/microphone.tsx": "51e0adffbdea6cfc43e854b2d9a9228da070b03c23c26e94a1c04b5f5da6822b",
