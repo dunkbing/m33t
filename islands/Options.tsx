@@ -8,6 +8,7 @@ import IconMessage from "ticons/tsx/message.tsx";
 import IconScreenShare from "ticons/tsx/screen-share.tsx";
 import IconScreenShareOff from "ticons/tsx/screen-share-off.tsx";
 import IconInfoCircle from "ticons/tsx/info-circle.tsx";
+import Chat, { ChatMessageProps } from "./Chat.tsx";
 
 function debounce<T extends unknown[], U>(
   wait: number,
@@ -132,27 +133,43 @@ function Info(props: {
 type OptionsProps = {
   screenSharing?: boolean;
   username?: string;
+  messages: ChatMessageProps[];
   onToggleAudio?: () => void;
   onToggleVideo?: () => void;
   onToggleScreenShare?: () => void;
   onChangeName?: (name: string) => void;
+  onSendMessage?: (msg: string) => void;
 };
 
 export default function Options(props: OptionsProps) {
   const [showInfo, setShowInfo] = useState(true);
+  const [showChat, setShowChat] = useState(false);
 
   return (
     <div class="flex flex-col items-center">
       {showInfo && (
         <Info username={props.username} onChangeName={props.onChangeName} />
       )}
+      {showChat && (
+        <Chat onSendMsg={props.onSendMessage} messages={props.messages} />
+      )}
       <div class="flex flex-row gap-2 items-center">
-        <OptionWrap onClick={() => setShowInfo(!showInfo)}>
+        <OptionWrap
+          onClick={() => {
+            setShowInfo(!showInfo);
+            setShowChat(false);
+          }}
+        >
           <IconInfoCircle size={36} />
         </OptionWrap>
         <MediaButton type="audio" onToggle={props.onToggleAudio} />
         <MediaButton type="video" onToggle={props.onToggleVideo} />
-        <OptionWrap>
+        <OptionWrap
+          onClick={() => {
+            setShowInfo(false);
+            setShowChat(!showChat);
+          }}
+        >
           <IconMessage size={36} />
         </OptionWrap>
         <OptionWrap onClick={props.onToggleScreenShare}>

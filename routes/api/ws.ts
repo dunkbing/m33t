@@ -2,6 +2,7 @@ import {
   WsChangeUsernameMsg,
   WsMediaMessage,
   WsMessage,
+  WsSendMessageMsg,
 } from "@/types/types.ts";
 
 const clients: Record<string, Map<string, WebSocket>> = {};
@@ -115,6 +116,22 @@ function wsHandleFunc(ws: WebSocket, room: string, clientId: string) {
               clientId: evtData.clientId,
               username: (evtData as unknown as WsChangeUsernameMsg).username,
             } as WsChangeUsernameMsg),
+          );
+        }
+        break;
+      case "send-msg":
+        for (const [k, v] of clients[room]) {
+          if (k === evtData.clientId) continue;
+          if (v.readyState !== v.OPEN) continue;
+          const msgData = evtData as unknown as WsSendMessageMsg;
+          v.send(
+            JSON.stringify({
+              type: "send-msg",
+              clientId: evtData.clientId,
+              username: msgData.username,
+              message: msgData.message,
+              createdAt: msgData.createdAt,
+            } as WsSendMessageMsg),
           );
         }
         break;

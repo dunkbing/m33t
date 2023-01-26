@@ -1,12 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+} from "preact/hooks";
 import { ICE_SERVERS, USERNAME_KEY } from "@/utils/constants.ts";
 import Video from "@/islands/Video.tsx";
 import {
   WsChangeUsernameMsg,
   WsMediaMessage,
   WsMessage,
+  WsSendMessageMsg,
 } from "@/types/types.ts";
 import Options from "@/islands/Options.tsx";
+import { ChatMessageProps } from "./Chat.tsx";
 
 interface Props {
   room: string;
@@ -35,6 +43,10 @@ export default function Videos(props: Props) {
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [sharing, setSharing] = useState(false);
+  const [messages, addMessage] = useReducer<
+    ChatMessageProps[],
+    ChatMessageProps
+  >((msgs, msg) => [...msgs, msg], []);
 
   const toggleAudio = useCallback(() => {
     const enabled = !audioEnabled;
@@ -98,15 +110,44 @@ export default function Videos(props: Props) {
           } as WsChangeUsernameMsg),
         );
       }
-      localStorage.setItem(USERNAME_KEY, name);
+      if (localStorage) {
+        localStorage.setItem(USERNAME_KEY, name);
+      }
       setUsername(name);
     },
-    [ws],
+    [ws, localStorage],
+  );
+
+  const sendMessage = useCallback(
+    (msg: string) => {
+      if (!remoteStreams.length) {
+        alert("There is no one in the room");
+        return;
+      }
+      const msgData = {
+        createdAt: new Date().toString(),
+        message: msg,
+        username,
+      };
+      if (ws) {
+        ws.send(
+          JSON.stringify({
+            clientId: id,
+            type: "send-msg",
+            ...msgData,
+          } as WsSendMessageMsg),
+        );
+      }
+      addMessage(msgData);
+    },
+    [ws, remoteStreams.length, username],
   );
 
   useEffect(() => {
-    const n = localStorage.getItem(USERNAME_KEY) || "";
-    setUsername(n);
+    if (localStorage) {
+      const n = localStorage.getItem(USERNAME_KEY) || "";
+      setUsername(n);
+    }
   }, [localStorage]);
 
   useEffect(() => {
@@ -296,6 +337,12 @@ export default function Videos(props: Props) {
           }
           break;
         }
+        case "send-msg": {
+          const { createdAt, username, message } =
+            data as unknown as WsSendMessageMsg;
+          addMessage({ createdAt, username, message });
+          break;
+        }
         case "disconnect": {
           delete peers[data.clientId];
           break;
@@ -343,10 +390,12 @@ export default function Videos(props: Props) {
         <Options
           username={username}
           screenSharing={sharing}
+          messages={messages}
           onToggleAudio={toggleAudio}
           onToggleVideo={toggleVideo}
           onToggleScreenShare={toggleScreenShare}
           onChangeName={changeUsername}
+          onSendMessage={sendMessage}
         />
       </div>
     </div>

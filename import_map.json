@@ -10,6 +10,7 @@
     "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.0.1",
     "ticons": "https://deno.land/x/tabler_icons_tsx@0.0.2",
     "ticons/": "https://deno.land/x/tabler_icons_tsx@0.0.2/",
+    "twas": "https://esm.sh/twas@2.1.2",
     "twind": "https://esm.sh/twind@0.16.17",
     "twind/": "https://esm.sh/twind@0.16.17/"
   }
