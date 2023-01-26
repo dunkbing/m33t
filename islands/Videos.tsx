@@ -5,7 +5,7 @@ import {
   useReducer,
   useState,
 } from "preact/hooks";
-import { ICE_SERVERS, USERNAME_KEY } from "@/utils/constants.ts";
+import { ICE_SERVERS } from "@/utils/constants.ts";
 import Video from "@/islands/Video.tsx";
 import {
   WsChangeUsernameMsg,
@@ -34,7 +34,7 @@ export default function Videos(props: Props) {
     console.log("clientId", res);
     return res;
   }, []);
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState(id);
   const [ws, setWs] = useState<WebSocket | null>(null);
   const peers = useMemo<Record<string, RTCPeerConnection>>(() => ({}), []);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
@@ -110,12 +110,9 @@ export default function Videos(props: Props) {
           } as WsChangeUsernameMsg),
         );
       }
-      if (localStorage) {
-        localStorage.setItem(USERNAME_KEY, name);
-      }
       setUsername(name);
     },
-    [ws, localStorage],
+    [ws],
   );
 
   const sendMessage = useCallback(
@@ -142,13 +139,6 @@ export default function Videos(props: Props) {
     },
     [ws, remoteStreams.length, username],
   );
-
-  useEffect(() => {
-    if (localStorage) {
-      const n = localStorage.getItem(USERNAME_KEY) || "";
-      setUsername(n);
-    }
-  }, [localStorage]);
 
   useEffect(() => {
     async function enableStream() {

@@ -6,5 +6,3 @@ export const ICE_SERVERS: RTCConfiguration = {
   ],
   iceCandidatePoolSize: 10,
 };
-
-export const USERNAME_KEY = "username";
