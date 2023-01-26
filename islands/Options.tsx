@@ -163,7 +163,9 @@ export default function Options(props: OptionsProps) {
           <IconInfoCircle size={36} />
         </OptionWrap>
         <MediaButton type="audio" onToggle={props.onToggleAudio} />
-        <MediaButton type="video" onToggle={props.onToggleVideo} />
+        {!props.screenSharing && (
+          <MediaButton type="video" onToggle={props.onToggleVideo} />
+        )}
         <OptionWrap
           onClick={() => {
             setShowInfo(false);

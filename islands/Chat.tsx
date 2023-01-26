@@ -57,6 +57,7 @@ export default function Chat(props: {
           >
             {props.messages.map((msg) => (
               <ChatMessage
+                key={msg.createdAt}
                 username={msg.username}
                 createdAt={msg.createdAt}
                 message={msg.message}
