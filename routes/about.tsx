@@ -11,8 +11,9 @@ export default function () {
               M33t is purely peer-to-peer, which means the user's video & audio
               is not sent to our server at all. We also use Cabin Analytics to
               track aggregated usage statistics in order to improve our service,
-              which can be seen here in this
+              which can be seen here in this{" "}
               <a
+                class="underline text-green-500"
                 href="https://withcabin.com/public/LT8F6bLEigzi"
                 target="_blank"
               >
