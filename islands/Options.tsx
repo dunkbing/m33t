@@ -144,6 +144,9 @@ function Info(props: {
           />
         </a>
       </div>
+      <a class="italic text-sm underline" target="_blank" href="/about">
+        Terms
+      </a>
     </div>
   );
 }
