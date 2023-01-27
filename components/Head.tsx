@@ -13,7 +13,7 @@ export default function (props: JSX.HTMLAttributes<HTMLHeadElement>) {
       <meta name="google" content="notranslate" />
       <meta
         name="google-site-verification"
-        content="EvBTnaMX5a54coVLUMXi9_87myajTYR_KF5j8T_Ag-E"
+        content="wJ-E87GIP8mU2xH-PEAsdh1UXR3wVOoduS5xJ7nuHO8"
       />
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
       <meta
