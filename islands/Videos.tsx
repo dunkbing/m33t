@@ -118,7 +118,7 @@ export default function Videos(props: Props) {
   const sendMessage = useCallback(
     (msg: string) => {
       if (!remoteStreams.length) {
-        alert("There is no one in the room");
+        alert("no peers in the room");
         return;
       }
       const msgData = {

@@ -106,7 +106,7 @@ function Info(props: {
   };
 
   return (
-    <div class="flex flex-col items-center bg-white rounded-md p-1.5 mb-1.5">
+    <div class="flex flex-col bg-white rounded-md p-1.5 mb-1.5">
       <div class="flex flex-row gap-1 items-center">
         <label class="font-semibold" htmlFor="name">
           Name
@@ -126,6 +126,14 @@ function Info(props: {
           {copied ? "Copied ✅" : "Copy"}
         </p>
       </div>
+      <iframe
+        src="https://ghbtns.com/github-btn.html?user=dunkbing&repo=m33t&type=star&count=true"
+        frameBorder="0"
+        scrolling="0"
+        width="150"
+        height="20"
+        title="GitHub"
+      />
     </div>
   );
 }
