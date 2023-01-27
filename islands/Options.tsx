@@ -126,14 +126,24 @@ function Info(props: {
           {copied ? "Copied ✅" : "Copy"}
         </p>
       </div>
-      <iframe
-        src="https://ghbtns.com/github-btn.html?user=dunkbing&repo=m33t&type=star&count=true"
-        frameBorder="0"
-        scrolling="0"
-        width="150"
-        height="20"
-        title="GitHub"
-      />
+      <div class="flex flex-row">
+        <iframe
+          src="https://ghbtns.com/github-btn.html?user=dunkbing&repo=m33t&type=star&count=true"
+          frameBorder="0"
+          scrolling="0"
+          width="150"
+          height="20"
+          title="GitHub"
+        />
+        <a href="https://fresh.deno.dev">
+          <img
+            width="130"
+            height="20"
+            src="https://fresh.deno.dev/fresh-badge-dark.svg"
+            alt="Made with Fresh"
+          />
+        </a>
+      </div>
     </div>
   );
 }
