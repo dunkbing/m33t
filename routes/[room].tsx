@@ -9,6 +9,7 @@ export default function Room(props: PageProps) {
     <>
       <Head />
       <Videos room={roomId} />
+      <script async defer src="https://scripts.withcabin.com/hello.js" />
     </>
   );
 }
