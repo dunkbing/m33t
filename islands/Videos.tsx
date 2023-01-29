@@ -376,7 +376,7 @@ export default function Videos(props: Props) {
           />
         ))}
       </div>
-      <div class="fixed bottom-0">
+      <div class="fixed bottom-1.5">
         <Options
           username={username}
           screenSharing={sharing}

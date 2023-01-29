@@ -48,14 +48,12 @@ function MediaButton(props: MediaButtonProps) {
     <>
       {props.type === "audio" && (
         <OptionWrap onClick={toggle}>
-          {enabled
-            ? <IconMicrophone size={36} />
-            : <IconMicrophoneOff size={36} />}
+          {enabled ? <IconMicrophone /> : <IconMicrophoneOff />}
         </OptionWrap>
       )}
       {props.type === "video" && (
         <OptionWrap onClick={toggle}>
-          {enabled ? <IconVideo size={36} /> : <IconVideoOff size={36} />}
+          {enabled ? <IconVideo /> : <IconVideoOff />}
         </OptionWrap>
       )}
     </>
@@ -181,7 +179,7 @@ export default function Options(props: OptionsProps) {
             setShowChat(false);
           }}
         >
-          <IconInfoCircle size={36} />
+          <IconInfoCircle />
         </OptionWrap>
         <MediaButton type="audio" onToggle={props.onToggleAudio} />
         {!props.screenSharing && (
@@ -193,15 +191,15 @@ export default function Options(props: OptionsProps) {
             setShowChat(!showChat);
           }}
         >
-          <IconMessage size={36} />
+          <IconMessage />
         </OptionWrap>
         <OptionWrap onClick={props.onToggleScreenShare}>
           {props.screenSharing
-            ? <IconScreenShareOff class="text-red-300" size={36} />
-            : <IconScreenShare size={36} />}
+            ? <IconScreenShareOff class="text-red-300" />
+            : <IconScreenShare />}
         </OptionWrap>
         <button
-          class="px-4 py-3.5 bg-red-400 font-bold text-white border border-b-4 border-r-4 border-red-600 rounded-lg shadow-lg hover:bg-red-500 hover:shadow-sm hover:border-b-2 hover:border-r-2"
+          class="p-2 bg-red-400 font-bold text-white border border-b-4 border-r-4 border-red-600 rounded-lg shadow-lg hover:bg-red-500 hover:shadow-sm hover:border-b-2 hover:border-r-2"
           onClick={() => close?.()}
         >
           Leave
