@@ -142,8 +142,12 @@ function Info(props: {
           />
         </a>
       </div>
-      <a class="italic text-sm underline" target="_blank" href="/about">
-        Terms
+      <a
+		  	class="italic text-sm underline"
+				target="_blank"
+				href="https://withcabin.com/public/LT8F6bLEigzi"
+			>
+        Stats
       </a>
     </div>
   );
