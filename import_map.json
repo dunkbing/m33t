@@ -1,6 +1,7 @@
 {
   "imports": {
     "@/": "./",
+    "envalid": "https://deno.land/x/envalid@0.1.2/mod.ts",
     "$fresh/": "https://deno.land/x/fresh@1.1.2/",
     "$std/": "https://deno.land/std@0.150.0/",
     "preact": "https://esm.sh/preact@10.11.0",
@@ -8,6 +9,7 @@
     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@5.2.4",
     "@preact/signals": "https://esm.sh/*@preact/signals@1.0.3",
     "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.0.1",
+    "telegram": "https://deno.land/x/telegram_bot_api@0.4.0/mod.ts",
     "ticons": "https://deno.land/x/tabler_icons_tsx@0.0.2",
     "ticons/": "https://deno.land/x/tabler_icons_tsx@0.0.2/",
     "twas": "https://esm.sh/twas@2.1.2",

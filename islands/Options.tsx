@@ -142,9 +142,14 @@ function Info(props: {
           />
         </a>
       </div>
-      <a class="italic text-sm underline" target="_blank" href="/about">
-        Terms
-      </a>
+      <div class="flex flex-row gap-2">
+        <a class="italic text-sm underline" target="_blank" href="/about">
+          Terms
+        </a>
+        <a class="italic text-sm underline" href="/feedback">
+          Feedback
+        </a>
+      </div>
     </div>
   );
 }
