@@ -1,7 +1,11 @@
 import { Head } from "$fresh/runtime.ts";
 import { JSX } from "preact";
 
-export default function (props: JSX.HTMLAttributes<HTMLHeadElement>) {
+type Props = {
+  title_?: string;
+};
+
+export default function (props: JSX.HTMLAttributes<HTMLHeadElement> & Props) {
   return (
     <Head>
       <meta
@@ -41,7 +45,9 @@ export default function (props: JSX.HTMLAttributes<HTMLHeadElement>) {
         content="A free, peer-to-peer group video calling web application. No signups. No downloads"
       />
       <meta property="article:author" content="https://github.com/dunkbing" />
-      <title>M33t - Free group video call for the web</title>
+      <title>
+        {props.title_ || "M33t - Free group video call for the web"}
+      </title>
     </Head>
   );
 }

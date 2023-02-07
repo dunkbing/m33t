@@ -90,7 +90,8 @@ const Video = (props: Props & JSX.HTMLAttributes<HTMLVideoElement>) => {
           : <IconMicrophoneOff size={25} color="white" />}
       </div>
       <div
-        onClick={() => containerRef.current?.requestFullscreen()}
+        onClick={() =>
+          containerRef.current?.requestFullscreen().catch(console.log)}
         class="absolute flex z-10 right-0 bottom-0 mr-1 mb-1 bg-gray-800 bg-opacity-60 p-1 rounded-md cursor-pointer"
       >
         <ZoomIcon />
