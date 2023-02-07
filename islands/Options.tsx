@@ -143,8 +143,12 @@ function Info(props: {
         </a>
       </div>
       <div class="flex flex-row gap-2">
-        <a class="italic text-sm underline" target="_blank" href="/about">
-          Terms
+        <a
+          class="italic text-sm underline"
+          target="_blank"
+          href="https://withcabin.com/public/LT8F6bLEigzi"
+        >
+          Stats
         </a>
         <a class="italic text-sm underline" href="/feedback">
           Feedback
